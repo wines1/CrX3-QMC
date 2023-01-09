@@ -64,9 +64,7 @@ def magnetic_torelli_olsen(
     data["BMIX_MAG"] = "0.0001"
     data["PREC"] ="High" 
     data["LSORBIT"] =".TRUE."
-    # data = {
     data["ENCUT"] = "500"
-    # }
     kp = Kpoints3D().automatic_length_mesh(
         length=length, lattice_mat=mat.lattice_mat
     )
