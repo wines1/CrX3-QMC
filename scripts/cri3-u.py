@@ -15,13 +15,13 @@ settings(
     pseudo_dir = './pseudopotentials',
     sleep   = 1,
     runs    = 'cri3/u-2',
-    machine = 'kisir',
+    machine = 'dobby', #modify to your machine
     )
 
-twod_prim_12 = read_structure('POSCAR-2d-12A', format='poscar')
+twod_prim_12 = read_structure('POSCAR-2d-12A', format='poscar') #read POSCAR file
 
 boundaries = 'ppp'
-supercells = [[[2, 1, 0], [-2, 3, 0], [0, 0, 1]]]
+supercells = [[[2, 1, 0], [-2, 3, 0], [0, 0, 1]]] #modify supercell size
 
 
 linopt1 = linear(
@@ -74,11 +74,11 @@ shared_qe = obj(
     nosym       = True,
     use_folded  = True,
 )
-qe_presub = 'module load intel impi openmpi-3.0.1/intel'
-qmcpack_presub = 'module load intel openmpi-3.0.1/intel qmcpack-3.9.0'
+qe_presub = 'module load qe/7.0.pw2qmcpack' #loaded modules
+qmcpack_presub = 'module load qmcpack/3.14.0'
 
-qe_job = job(nodes=4,threads=40,app='pw.x', presub=qe_presub)
-qmc_job = job(nodes=8,threads=40,app='qmcpack_kisir_cpu_comp_SoA', presub=qmcpack_presub)
+qe_job = job(nodes=1, cores = 16, threads=1,app='pw.x', presub=qe_presub) #submission details
+qmc_job = job(nodes=4,processes_per_node=1,threads=16,app='qmcpack_complex', presub=qmcpack_presub)
 vmc_dmc_dep = None
 for scale in [1.0]:
     twod_prim_12_temp = twod_prim_12.copy()
@@ -88,7 +88,7 @@ for scale in [1.0]:
         Cr = 14,
         I = 7,
         kshift   = (0,0,0),
-        net_spin = 6,
+        net_spin = 6, #for ferromagnetic orientation, can modify script for other magnetic orientations
     )
     twod_12_scf = generate_pwscf(
         identifier = 'scf',                      # log output goes to scf.out
@@ -243,7 +243,7 @@ for scale in [1.0]:
             #run DMC 
                nkgrid = len(twod_nscf_12_system.structure.kpoints)
                dmc_nnodes = max(8, nkgrid)
-               dmc_job = job(nodes=dmc_nnodes,threads=40,app='qmcpack_kisir_cpu_comp_SoA', presub=qmcpack_presub)
+               dmc_job = job(nodes=dmc_nnodes,processes_per_node=1,threads=16,app='qmcpack_complex', presub=qmcpack_presub)
                dmcrun = generate_qmcpack(
                     identifier      = 'dmc',
                     path            = 'dmc-twod-12-{}-{}-{}'.format(scale, scell_vol, dt_dmc),
